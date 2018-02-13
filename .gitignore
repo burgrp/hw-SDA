@@ -4,6 +4,6 @@
 *-cache.lib
 build
 .vscode
-.deps
+deps
 node_modules
 
