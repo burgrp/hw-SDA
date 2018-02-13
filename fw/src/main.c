@@ -41,14 +41,14 @@ void spiEnd()
 }
 
 /*
-msg_type:
+msgType:
 00 - CS->0; HEAD, DATA; CS->1
 01 - CS->0; HEAD, DATA
 02 - DATA
 03 - DATA; CS->1
 */
 
-void mqtt_handler(struct mg_connection *nc, const char *topic,
+void mqttHandler(struct mg_connection *nc, const char *topic,
                   int topic_len, const char *msg, int msg_len,
                   void *ud)
 {
@@ -57,9 +57,9 @@ void mqtt_handler(struct mg_connection *nc, const char *topic,
   (void)(topic_len);
   (void)(ud);
 
-  int msg_type = *msg++; msg_len--;
+  int msgType = *msg++; msg_len--;
   
-  if (msg_type == 0 | msg_type == 1) {
+  if (msgType == 0 | msgType == 1) {
     spiStart();
     spiWrite(0x2A);
     spiWrite(0x100 | msg[0]);
@@ -100,7 +100,7 @@ void mqtt_handler(struct mg_connection *nc, const char *topic,
     
   }
   
-  if (msg_type == 0 | msg_type == 4) {
+  if (msgType == 0 | msgType == 4) {
     spiEnd();
   }
 }
@@ -130,8 +130,8 @@ void lcd_init()
   }
 
   char topic[100];
-  c_snprintf(topic, sizeof(topic), "%s/spi/write", clientId);
-  mgos_mqtt_sub(topic, &mqtt_handler, 0);
+  c_snprintf(topic, sizeof(topic), "%s/screen/write", clientId);
+  mgos_mqtt_sub(topic, &mqttHandler, 0);
 }
 
 enum mgos_app_init_result mgos_app_init(void)
