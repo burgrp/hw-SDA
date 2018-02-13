@@ -8,26 +8,12 @@ int pinCS = 15;
 
 void spiWrite(int data)
 {
-  mgos_gpio_set_mode(pinSDA, MGOS_GPIO_MODE_OUTPUT);
   for (int b = 8; b >= 0; b--)
   {
     mgos_gpio_write(pinSDA, (data >> b) & 1);
     mgos_gpio_write(pinSCL, 0);
     mgos_gpio_write(pinSCL, 1);
   }
-}
-
-int spiRead()
-{
-  mgos_gpio_set_mode(pinSDA, MGOS_GPIO_MODE_INPUT);
-  int data = 0;
-  for (int b = 7; b >= 0; b--)
-  {
-    mgos_gpio_write(pinSCL, 0);
-    data = data | (mgos_gpio_read(pinSDA) << b);
-    mgos_gpio_write(pinSCL, 1);
-  }
-  return data;
 }
 
 void spiStart()
@@ -108,6 +94,7 @@ void mqttHandler(struct mg_connection *nc, const char *topic,
 void lcd_init()
 {
   mgos_gpio_set_mode(pinSCL, MGOS_GPIO_MODE_OUTPUT);
+  mgos_gpio_set_mode(pinSDA, MGOS_GPIO_MODE_OUTPUT);
   mgos_gpio_set_mode(pinCS, MGOS_GPIO_MODE_OUTPUT);
 
   spiStart();
