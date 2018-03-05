@@ -43,9 +43,14 @@ void mqttHandler(struct mg_connection *nc, const char *topic,
   (void)(topic_len);
   (void)(ud);
 
+  //LOG(LL_INFO, ("LEN:%d", msg_len));
+
   int msgType = *msg++; msg_len--;
+
+  //LOG(LL_INFO, ("TYPE:%d", msgType));
   
-  if (msgType == 0 | msgType == 1) {
+  if (msgType == 0 || msgType == 1) {
+    //LOG(LL_INFO, ("SPI START"));
     spiStart();
     spiWrite(0x2A);
     spiWrite(0x100 | msg[0]);
@@ -59,10 +64,10 @@ void mqttHandler(struct mg_connection *nc, const char *topic,
     spiWrite(0x100 | msg[7]);
     msg += 8;
     msg_len -= 8;
+    spiWrite(0x2C);
   }  
 
-  spiWrite(0x2C);
-  while (msg_len)
+  while (msg_len > 0)
   {
     int b = *msg++;
     msg_len--;
@@ -77,17 +82,22 @@ void mqttHandler(struct mg_connection *nc, const char *topic,
           }
         }
       } else {
-        spiWrite(0x100 | b);  
+        spiWrite(0x100 | b);
+        spiWrite(0x100 | *msg++); msg_len--;
+        spiWrite(0x100 | *msg++); msg_len--;
       }
 
     } else {
       spiWrite(0x100 | b);
+      spiWrite(0x100 | *msg++); msg_len--;
+      spiWrite(0x100 | *msg++); msg_len--;
     }
     
   }
   
-  if (msgType == 0 | msgType == 4) {
+  if (msgType == 0 || msgType == 3) {
     spiEnd();
+    //LOG(LL_INFO, ("SPI END"));
   }
 }
 
@@ -108,7 +118,15 @@ void lcd_init()
   // COLMODE
   spiWrite(0x3A);
   spiWrite(0x106);
+
+  spiWrite(0x2C);
+  for (int c = 0; c < 128 * 128 * 3; c++) {
+    spiWrite(0x100 | (c & 0xFF));
+  }
+
   spiEnd();
+
+
 
   const char *clientId = mgos_sys_config_get_mqtt_client_id();
   if (!clientId)
